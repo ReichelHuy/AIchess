@@ -3,13 +3,9 @@
 # castling
 # en passant
 # pawn promotion
-
 import pygame
 from constants import *
-
 pygame.init()
-
-
 # draw main game board
 def draw_board():
     for i in range(32):
@@ -33,8 +29,6 @@ def draw_board():
             pygame.draw.rect(screen, 'gray', [0, 800, WIDTH - 200, 100])
             pygame.draw.rect(screen, 'gold', [0, 800, WIDTH - 200, 100], 5)
             screen.blit(big_font.render('Select Piece to Promote Pawn', True, 'black'), (20, 820))
-
-
 # draw pieces onto board
 def draw_pieces():
     for i in range(len(white_pieces)):
@@ -58,8 +52,6 @@ def draw_pieces():
             if selection == i:
                 pygame.draw.rect(screen, 'blue', [black_locations[i][0] * 100 + 1, black_locations[i][1] * 100 + 1,
                                                   100, 100], 2)
-
-
 # function to check all pieces valid options on board
 def check_options(pieces, locations, turn):
     global castling_moves
@@ -83,8 +75,6 @@ def check_options(pieces, locations, turn):
             moves_list, castling_moves = check_king(location, turn)
         all_moves_list.append(moves_list)
     return all_moves_list
-
-
 # check king valid moves
 def check_king(position, color):
     moves_list = []
@@ -102,8 +92,6 @@ def check_king(position, color):
         if target not in friends_list and 0 <= target[0] <= 7 and 0 <= target[1] <= 7:
             moves_list.append(target)
     return moves_list, castle_moves
-
-
 # check queen valid moves
 def check_queen(position, color):
     moves_list = check_bishop(position, color)
@@ -111,7 +99,6 @@ def check_queen(position, color):
     for i in range(len(second_list)):
         moves_list.append(second_list[i])
     return moves_list
-
 
 # check bishop moves
 def check_bishop(position, color):
@@ -148,7 +135,6 @@ def check_bishop(position, color):
                 path = False
     return moves_list
 
-
 # check rook moves
 def check_rook(position, color):
     moves_list = []
@@ -183,7 +169,6 @@ def check_rook(position, color):
             else:
                 path = False
     return moves_list
-
 
 # check valid pawn moves
 def check_pawn(position, color):
@@ -224,7 +209,6 @@ def check_pawn(position, color):
             moves_list.append((position[0] - 1, position[1] - 1))
     return moves_list
 
-
 # check valid knight moves
 def check_knight(position, color):
     moves_list = []
@@ -242,7 +226,6 @@ def check_knight(position, color):
             moves_list.append(target)
     return moves_list
 
-
 # check for valid moves for just selected piece
 def check_valid_moves():
     if turn_step < 2:
@@ -251,7 +234,6 @@ def check_valid_moves():
         options_list = black_options
     valid_options = options_list[selection]
     return valid_options
-
 
 # draw valid moves on screen
 def draw_valid(moves):
