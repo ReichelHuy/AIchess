@@ -12,10 +12,10 @@ img = cv.imread(file_name,0)
 kernel = np.ones((3, 3), np.uint8)
 
 # Phép co
-shrink_img = cv.erode(img, kernel, iterations=1)
+shrink_img = cv.erode(img, kernel, iterations=4)
 
 # Phép giãn nở
-dilate_img = cv.dilate(img, kernel, iterations=1)
+dilate_img = cv.dilate(img, kernel, iterations=2)
 
 # Hiển thị hình ảnh gốc và hình ảnh đã biến đổi
 cv.imshow('Original Image', img)

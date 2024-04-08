@@ -4,6 +4,7 @@ import os
 import PIL
 import base64
 import io
+import math
 import matplotlib.pyplot as plt
 # Đọc hình ảnh
 # config
@@ -17,12 +18,12 @@ def test(img):
     cv2.destroyAllWindows()
 def test1(contours):
     # Tạo một hình ảnh trắng để vẽ các đường viền
-    canvas = np.zeros_like(img_original)
+    img = loadImage(file_name)
+    canvas = np.zeros_like(img)
     cv2.drawContours(canvas, contours, -1, (255, 255, 255), 2)
     # Hiển thị hình ảnh trắng chứa các đường viền
     plt.imshow(canvas, cmap='gray')
     plt.show()
-
 
 #---------------------------------TOOL_FUNCTION---------------------------
 # caculate slope between two point (it means find a,b in the equation y = ax + b)
@@ -35,8 +36,8 @@ def slope_intercept(x1,y1,x2,y2):
 def color_points(img, matrixOfPoints):
     for i in range(0, len(matrixOfPoints)):
         for j in range(0, len(matrixOfPoints[i])):
-            img = cv2.circle(img, (np.uint8(matrixOfPoints[i,j,0]),np.uint8(matrixOfPoints[i,j,1])), radius=1, color=(255,0,0), thickness=-1)
-            cv2.putText(img,f"{i*9+j}",(np.uint8(matrixOfPoints[i,j,0]),np.uint8(matrixOfPoints[i,j,1])),cv2.FONT_HERSHEY_SIMPLEX,0.4,(0,0,255),1)
+            img = cv2.circle(img, (np.uint64(matrixOfPoints[i,j,0]),np.uint64(matrixOfPoints[i,j,1])), radius=1, color=(255,0,0), thickness=-1)
+            cv2.putText(img,f"{i*9+j}",(np.uint64(matrixOfPoints[i,j,0]),np.uint64(matrixOfPoints[i,j,1])),cv2.FONT_HERSHEY_SIMPLEX,0.3,(0,0,255),1)
     return img
 
 # lst = [1, 2, 3, 4, 5, 6, 7, 8, 9] with n=3 => [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -415,6 +416,7 @@ def getBoardOutline(best_lines_x, best_lines_y, M):
     return xy_unwarp[0,:,:]
 # find chessboard
 def findChessboard(img, min_pts_needed=15, max_pts_needed=25):
+#    blur_img = cv2.dilate(img, (5,5), iterations=4)
     blur_img = cv2.blur(img, (5,5)) # Blur it
     saddle = getSaddle(blur_img)
     saddle = -saddle
@@ -424,11 +426,13 @@ def findChessboard(img, min_pts_needed=15, max_pts_needed=25):
     s2[s2<100000]=0
     spts = np.argwhere(s2)
     edges = cv2.Canny(img, 100, 200)
+    edges = cv2.dilate(edges,(5,5), iterations=1)
+    #test(edges)
     contours_all, hierarchy = getContours(img, edges)
     simplifyContours(contours_all)
     #test1(contours_all)
     contours, hierarchy = pruneContours(contours_all, hierarchy, saddle)
-    test1(contours)
+    #test1(contours)
     
     curr_num_good = 0
     curr_grid_next = None
@@ -527,9 +531,9 @@ def getMatrixFromImage(file_path):
 
         matrix = np.vstack(([first_line], inner_lines, [last_line]))
         clear_image = img_rgb.copy()
-        #uncomment to see points on the image
+        #uncomment to see points on the image , check matrix
         color_points(img_rgb, matrix)
-        test(img_rgb)
+        #test(img_rgb)
         img_rgb = PIL.Image.fromarray(img_rgb)
         img_rgb = img_rgb.resize((img_width, img_height), resample=PIL.Image.BILINEAR)
         byte_array = io.BytesIO()
@@ -544,11 +548,82 @@ def getMatrixFromImage(file_path):
         #cv2.waitKey()
         #cv2.destroyAllWindows()
         return None, None , None
-
-
-
 # test function
 clear_image, encoded_image, matrix = getMatrixFromImage(file_name)
 # cv2.imshow("Image", clear_image)
 # cv2.waitKey()
 # cv2.destroyAllWindows()
+#-----------------------------------PiecesDetector------------------------------------
+# input: Point matrix, Out: Squares --NEED TO OPTIMIZE
+def getSquares(pointsMatrix):
+    squares_found = []
+    for i in range(0, len(pointsMatrix)-1):
+        for j in range(0, len(pointsMatrix[i])-1):
+            squares_found.append([pointsMatrix[i][j], pointsMatrix[i][j+1], pointsMatrix[i+1][j+1],pointsMatrix[i+1][j]])
+    return squares_found
+# input : Get images
+def getSingleImage(cropped_pieces_list, index):
+    cropped = cropped_pieces_list[index]
+    return cropped
+# input : Square to fill
+def fillSquare(square_to_fill, img_orig):
+    out_img = img_orig.copy()
+    cv2.fillPoly(img_orig, pts =np.array([square_to_fill], dtype=np.int32), color=(0,255,0))
+    ALPHA = 0.5
+    cv2.addWeighted(img_orig, ALPHA, out_img, 1 - ALPHA, 0, out_img)
+    return out_img
+
+# Sorts the points based on the Y axis
+# sub_li -> the points list
+def Sort_Y(sub_li): 
+    # reverse = None (Sorts in Ascending order) 
+    # key is set to sort using second element of  
+    # sublist lambda has been used 
+    return(sorted(sub_li, key = lambda x: x[1]))
+
+# Sorts the points based on the X axis
+# sub_li -> the points list
+def Sort_X(sub_li): 
+    return(sorted(sub_li, key = lambda x: x[0]))
+
+def cropPieces(img, matrix):
+    
+    if matrix is not None:
+        squares = getSquares(matrix)
+        ratio_h = 1.5   #Definisce il rapporto verticale/orizzontale   scegli tra 1.5 o 2
+        ratio_w = 1   #Io lascerei 1
+        pieces_cropped = []
+        for square in squares:
+            img_copy = img.copy()
+            out = fillSquare(square, img_copy)
+            sort_y = Sort_Y(square)
+            # We get the points with trhe lowest y and the two lowest x 
+            new_y = sort_y[3][1]
+            sort_x = Sort_X(square)
+            first_new_x = sort_x[0][0]
+            second_new_x = sort_x[3][0]
+
+            bot_left, bot_right = [first_new_x,new_y], [second_new_x,new_y]
+            base_len = math.dist(bot_left, bot_right)   
+            start_x, start_y = int(bot_left[0]), int(bot_left[1] - (base_len * ratio_h))
+            end_x, end_y = int(bot_right[0]), int(bot_right[1])
+            if start_y < 0:
+                start_y = 0
+            cropped = img[start_y: end_y, start_x: end_x]
+            cropped = cv2.resize(cropped,(224, 224))
+            test(cropped)
+            cropped = PIL.Image.fromarray(cropped)
+            byte_array = io.BytesIO()
+            cropped.save(byte_array, format='JPEG')
+
+            # encode to base64
+            encoded_image = base64.encodebytes(byte_array.getvalue()).decode('ascii')
+
+            pieces_cropped.append(encoded_image)
+
+        return pieces_cropped
+    else:
+        return None
+    
+pieces_cropped = cropPieces(clear_image, matrix)
+print(pieces_cropped)

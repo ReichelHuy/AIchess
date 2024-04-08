@@ -50,7 +50,7 @@ def getContours(img, edges, iters=10):
 # Gọi hàm getContours để tìm các đường viền và phân cấp của chúng
 contours, hierarchy = getContours(img, edges)
 print(contours)
-simplifyContours(contours)  
+#simplifyContours(contours)  
 
 # In số lượng đường viền đã tìm được
 print("Số lượng đường viền:", len(contours))
@@ -61,7 +61,8 @@ print("Phân cấp:", hierarchy)
 # Tạo một hình ảnh trắng để vẽ các đường viền
 canvas = np.zeros_like(img)
 cv2.drawContours(canvas, contours, -1, (255, 255, 255), 2)
-
+#---------------
+#--------------
 # Hiển thị hình ảnh trắng chứa các đường viền
 plt.imshow(canvas, cmap='gray')
 plt.show()
