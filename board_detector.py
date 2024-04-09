@@ -12,7 +12,6 @@ def make_tf_kernel(k):
     k = k.reshape(list(k.shape) + [1, 1])
     return tf.constant(k, dtype=tf.float32)
 
-
 # Simple 2D convolution
 def simple_conv2d(x, k):
     x = tf.expand_dims(tf.expand_dims(x, 0), -1)

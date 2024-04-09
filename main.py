@@ -6,18 +6,20 @@ import numpy as np
 import pyautogui
 import pyscreenshot as pss
 import matplotlib.pyplot as plt
-import tensorflow as tf
 import chess
 import chess.engine
-
+import tensorflow as tf
+import stockfish
+import keras
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextEdit
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize
-
 from board_detector import detect_chessboard, get_chess_tiles
 from image_helper import grayscale_image
 from screen_helper import ScreenHighlighter
+
+
 
 app = QApplication(sys.argv)
 screen_h = ScreenHighlighter()
@@ -38,8 +40,12 @@ ch_lines_y = None
 
 te_log = None
 
+
 engine = None
-model = tf.keras.models.load_model('models/softmax_v1')
+
+
+model = keras.models.load_model('models/softmax_v1')
+#model = keras.layers.TFSMLayer("models/softmax_v1", call_endpoint="serving_default")
 
 
 def window():
@@ -79,12 +85,12 @@ def window():
     widget.setGeometry(50, 50, 320, 200)
     widget.setWindowTitle("Chessbot")
     widget.show()
-
     logln("")
     logln("[Engine] Starting Stockfish engine ...")
-    engine = chess.engine.SimpleEngine.popen_uci("/usr/local/bin/stockfish")
+    engine = chess.engine.SimpleEngine.popen_uci('/opt/homebrew/bin/stockfish')
+    
+    screen_h
     sys.exit(app.exec_())
-
 
 def b_auto_play_clicked():
     print("TODO")
@@ -188,9 +194,10 @@ def test1():
 
     # feed FEN to stockfish
     board = chess.Board(f"{fen_text} w")
-    result = engine.play(board, chess.engine.Limit(time=0.1))
+    result = engine.play(board, chess.engine.Limit(time=10))
     logln(f"[Engine] Best Move: {result.move}")
     best_move = result.move
+
 
     move = str(best_move)
     start_coord = move[0:2]
@@ -207,9 +214,8 @@ def test1():
     pyautogui.click(tsx, tsy, clicks=2, interval=0.2)
     time.sleep(0.3)
     pyautogui.dragTo(tex, tey, button='left', duration=0.3)
-    time.sleep(1.5)
+    time.sleep(11.5)
     test1()
-
 
 
 def label2FEN(labels):

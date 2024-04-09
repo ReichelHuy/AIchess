@@ -1,12 +1,13 @@
 import numpy as np
 import PIL
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 from image_helper import grayscale_resized_image
 from board_detector import detect_chessboard, get_chess_tiles
 
 
+
 # load pre-trained model
-model = load_model('models/softmax_v1')
+model = tf.keras.models.load_model('models/softmax_v1')
 model.summary()
 
 label = ' KQRBNPkqrbnp'
