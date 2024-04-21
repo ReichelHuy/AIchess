@@ -11,7 +11,6 @@ import os
 
 if __name__ == '__main__':    
     root = "Data"
-
     train_transform = transforms.Compose([
         # Play with the data a bit
         #transforms.RandomRotation(15),
