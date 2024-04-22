@@ -94,7 +94,7 @@ print(CNNmodel)
 
 # training loop
 start_time = time.time()  # For measuring training time
-epochs =10
+epochs =2
 
 # training
 train_losses = []
@@ -129,7 +129,7 @@ for i in range(epochs):
         for b, (X_test, y_test) in enumerate(test_loader):
             y_val = CNNmodel(X_test)
             predicted = torch.max(y_val.data, 1)[1]
-            test_correct_epoch += (predicted.numpy() == y_test.numpy()).sum()
+            test_correct_epoch = (predicted.numpy() == y_test.numpy()).sum()
 
     # Update loss
     loss = criterion(y_val, y_test)
@@ -141,6 +141,6 @@ total_time = time.time() - start_time
 
 print("Finished in: ", total_time / 60, " minutes")
 print(test_correct)
-print("Test correct: ", (test_correct[-1].item() /8608) * 100, "%")
+print("Test correct: ", (test_correct[-1].item() /194) * 100, "%")
 
 torch.save(CNNmodel.state_dict(), "chessModelCNN.pt")

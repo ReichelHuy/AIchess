@@ -593,7 +593,7 @@ def cropPieces(img, matrix):
     
     if matrix is not None:
         squares = getSquares(matrix)
-        ratio_h = 1   #Definisce il rapporto verticale/orizzontale   scegli tra 1.5 o 2
+        ratio_h = 1.2   #Definisce il rapporto verticale/orizzontale   scegli tra 1.5 o 2
         ratio_w = 1   #Io lascerei 1
         pieces_cropped = []
         for square in squares:
@@ -632,9 +632,18 @@ def cropPieces(img, matrix):
   
 pieces_cropped = cropPieces(clear_image, matrix)
 pieces_state = [[] for _ in range(8)]
+
+# Chụp ngang phải sang trái
+# for i, piece in enumerate(pieces_cropped):
+#     position =  i % 8
+#     pieces_state[position].insert(0, piece)
+
+#chụp dọc, theo hướng a->h,1->8
 for i, piece in enumerate(pieces_cropped):
-    position =  i % 8
-    pieces_state[position].insert(0, piece)
+    position =  i // 8
+    pieces_state[position].append(piece)
+
+
 
 '''
 #it works!
@@ -642,6 +651,7 @@ for i in pieces_state[0]:
     test(i)
 '''
 from Test_model import predict_picture
+from NETMOBILEV2 import predict_image
 import chess
 import chess.svg
 import requests
@@ -655,13 +665,14 @@ import webbrowser
 # pieces_state
 
 PIECE_TYPES = ['r', 'n', 'b', 'q', 'k', 'p', 'P', 'R', 'N', 'B', 'Q', 'K', '.']
-LABLES = ['br', 'bn', 'bb', 'bq', 'bk', 'bp', 'wp', 'wr', 'wn', 'wb', 'wq', 'wk', '0']
+LABLES = ['br', 'bn', 'bb', 'bq', 'bk', 'bp', 'wp', 'wr', 'wn', 'wb', 'wq', 'wk', '_'] # or 0
 Game_maxtrix = [[] for _ in range(8)]
 for i in reversed(range(8)):
     for j in range(8):
         if pieces_state[i][j] is not None:
             test(pieces_state[i][j])
-            label, probability = predict_picture(PIL.Image.fromarray(pieces_state[i][j]))
+            #label, probability = predict_picture(PIL.Image.fromarray(pieces_state[i][j]))
+            label, probability = predict_image(PIL.Image.fromarray(pieces_state[i][j]))
             print("Label: {}, Probability: {:.2f}".format(label, probability))
             Game_maxtrix[i].append(PIECE_TYPES[LABLES.index(label)])
 
