@@ -507,6 +507,7 @@ while run:
             x_coord = event.pos[0] // 100
             y_coord = event.pos[1] // 100
             click_coords = (x_coord, y_coord)
+            #  White move 
             if turn_step <= 1:
                 if click_coords == (8, 8) or click_coords == (9, 8):
                     winner = 'black'
@@ -557,6 +558,7 @@ while run:
                             turn_step = 2
                             selection = 100
                             valid_moves = []
+            # Black move
             if turn_step > 1:
                 root_player_color = chess.BLACK
                 root = Node(state=board.copy(), player_color=root_player_color)
